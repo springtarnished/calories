@@ -1,39 +1,43 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Calorie Tracker</title>
-  <link rel="stylesheet" href="style.css">
+  <link href="https://fonts.googleapis.com/css?family=Roboto:400,500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css" />
 </head>
 <body>
-  <div class="container">
-    <h1>Calorie Tracker</h1>
-    <div class="date-picker">
-      <label for="datePicker">Date:</label>
-      <input id="datePicker" type="date">
-    </div>
-    <div class="form-group">
-      <input id="foodItem" type="text" placeholder="Food Item">
-      <input id="servingSize" type="number" placeholder="Serving Size">
-      <input id="calPerServing" type="number" placeholder="Calories Per Serving">
-      <button onclick="addItem()">Add</button>
-    </div>
-    <table id="foodTable">
-      <thead>
-        <tr>
-          <th>Food Item</th>
-          <th>Serving Size</th>
-          <th>Calories/Serving</th>
-          <th>Total Calories</th>
-          <th>Actions</th>
-        </tr>
-      </thead>
-      <tbody></tbody>
-    </table>
-    <div class="progress-container">
-      <div class="progress-bar" id="progressBar">0 / 1800</div>
-    </div>
+  <div class="app">
+    <header>
+      <h1>Calorie Tracker</h1>
+    </header>
+    <section class="goal-tracker">
+      <div class="goal-info">
+        <span id="daily-goal">Daily Goal: 1800 cal</span>
+        <span id="total-calories">Total: 0 cal</span>
+        <span id="remaining-calories">1800 cal remaining</span>
+      </div>
+      <div class="progress-bar">
+        <div id="progress" class="progress" style="width: 0%;"></div>
+      </div>
+    </section>
+    <main>
+      <form id="calorie-form" class="calorie-form">
+        <input type="text" id="food-name" placeholder="Food Item" required />
+        <input type="number" id="servings" placeholder="Servings" required />
+        <input type="number" id="calories-per-serving" placeholder="Calories per Serving" required />
+        <button type="submit">Add</button>
+        <button type="button" id="clear-all" class="clear-all">Clear All</button>
+      </form>
+      <div id="error-message" class="error-message"></div>
+      <section class="items-list" id="items-list">
+        <p class="empty-message">No items added yet.</p>
+      </section>
+    </main>
+    <footer>
+      <h2 id="footer-total">Total Calories: 0</h2>
+    </footer>
   </div>
   <script src="script.js"></script>
 </body>

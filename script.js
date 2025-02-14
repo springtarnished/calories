@@ -1,92 +1,131 @@
-const datePicker = document.getElementById('datePicker');
-datePicker.value = new Date().toISOString().split('T')[0];
-let totalCalories = 0;
-let items = [];
+document.addEventListener('DOMContentLoaded', () => {
+  const DAILY_GOAL = 1800;
+  let items = [];
 
-function loadData() {
-  const dateKey = 'calorieTracker-' + datePicker.value;
-  const data = localStorage.getItem(dateKey);
-  items = data ? JSON.parse(data) : [];
-  totalCalories = 0;
-  const tbody = document.querySelector('#foodTable tbody');
-  tbody.innerHTML = '';
-  items.forEach((item, index) => {
-    totalCalories += item.totalCalories;
-    const row = document.createElement('tr');
-    row.id = `row-${index}`;
-    row.innerHTML = `
-      <td>${item.foodItem}</td>
-      <td>${item.servingSize}</td>
-      <td>${item.calPerServing}</td>
-      <td>${item.totalCalories}</td>
-      <td>
-        <button onclick="editItem(${index})">Edit</button>
-        <button onclick="deleteItem(${index})">Delete</button>
-      </td>
-    `;
-    tbody.appendChild(row);
+  const form = document.getElementById('calorie-form');
+  const foodNameInput = document.getElementById('food-name');
+  const servingsInput = document.getElementById('servings');
+  const caloriesInput = document.getElementById('calories-per-serving');
+  const totalCaloriesEl = document.getElementById('total-calories');
+  const progressEl = document.getElementById('progress');
+  const remainingCaloriesEl = document.getElementById('remaining-calories');
+  const footerTotalEl = document.getElementById('footer-total');
+  const itemsListEl = document.getElementById('items-list');
+  const errorMessageEl = document.getElementById('error-message');
+  const clearAllBtn = document.getElementById('clear-all');
+
+  loadItems();
+
+  form.addEventListener('submit', (e) => {
+    e.preventDefault();
+    clearError();
+
+    const name = foodNameInput.value.trim();
+    const servings = parseFloat(servingsInput.value);
+    const calories = parseFloat(caloriesInput.value);
+
+    if (!name || isNaN(servings) || isNaN(calories) || servings <= 0 || calories <= 0) {
+      displayError("Enter valid values.");
+      return;
+    }
+
+    const newItem = { id: Date.now(), name, servings, calories };
+    items.push(newItem);
+    saveItems();
+    updateUI();
+    form.reset();
   });
-  updateProgress();
-}
 
-function saveData() {
-  const dateKey = 'calorieTracker-' + datePicker.value;
-  localStorage.setItem(dateKey, JSON.stringify(items));
-}
+  clearAllBtn.addEventListener('click', () => {
+    if (confirm("Clear all items?")) {
+      items = [];
+      saveItems();
+      updateUI();
+    }
+  });
 
-function addItem() {
-  const foodItem = document.getElementById('foodItem').value;
-  const servingSize = parseFloat(document.getElementById('servingSize').value);
-  const calPerServing = parseFloat(document.getElementById('calPerServing').value);
-  if (!foodItem || isNaN(servingSize) || isNaN(calPerServing)) return;
-  const itemCalories = servingSize * calPerServing;
-  const newItem = { foodItem, servingSize, calPerServing, totalCalories: itemCalories };
-  items.push(newItem);
-  saveData();
-  loadData();
-  document.getElementById('foodItem').value = '';
-  document.getElementById('servingSize').value = '';
-  document.getElementById('calPerServing').value = '';
-}
+  function updateUI() {
+    const totalCalories = items.reduce((sum, item) => sum + item.servings * item.calories, 0);
+    totalCaloriesEl.textContent = `Total: ${totalCalories} cal`;
+    footerTotalEl.textContent = `Total Calories: ${totalCalories}`;
 
-function updateProgress() {
-  const progressPercent = Math.min((totalCalories / 1800) * 100, 100);
-  const progressBar = document.getElementById('progressBar');
-  progressBar.style.width = progressPercent + '%';
-  progressBar.textContent = `${totalCalories} / 1800`;
-}
+    const remaining = DAILY_GOAL - totalCalories;
+    remainingCaloriesEl.textContent = remaining >= 0
+      ? `${remaining} cal remaining`
+      : `${Math.abs(remaining)} cal over`;
 
-function editItem(index) {
-  const row = document.getElementById(`row-${index}`);
-  const item = items[index];
-  row.innerHTML = `
-    <td><input type="text" id="edit-foodItem-${index}" value="${item.foodItem}"></td>
-    <td><input type="number" id="edit-servingSize-${index}" value="${item.servingSize}"></td>
-    <td><input type="number" id="edit-calPerServing-${index}" value="${item.calPerServing}"></td>
-    <td>${item.servingSize * item.calPerServing}</td>
-    <td>
-      <button onclick="saveEdit(${index})">Save</button>
-      <button onclick="loadData()">Cancel</button>
-    </td>
-  `;
-}
+    const progressPercent = Math.min((totalCalories / DAILY_GOAL) * 100, 100);
+    progressEl.style.width = progressPercent + '%';
 
-function saveEdit(index) {
-  const foodItem = document.getElementById(`edit-foodItem-${index}`).value;
-  const servingSize = parseFloat(document.getElementById(`edit-servingSize-${index}`).value);
-  const calPerServing = parseFloat(document.getElementById(`edit-calPerServing-${index}`).value);
-  if (!foodItem || isNaN(servingSize) || isNaN(calPerServing)) return;
-  const itemCalories = servingSize * calPerServing;
-  items[index] = { foodItem, servingSize, calPerServing, totalCalories: itemCalories };
-  saveData();
-  loadData();
-}
+    renderItems();
+  }
 
-function deleteItem(index) {
-  items.splice(index, 1);
-  saveData();
-  loadData();
-}
+  function renderItems() {
+    if (!items.length) {
+      itemsListEl.innerHTML = '<p class="empty-message">No items added yet.</p>';
+      return;
+    }
+    const ul = document.createElement('ul');
+    items.forEach(item => {
+      const li = document.createElement('li');
 
-datePicker.addEventListener('change', loadData);
-loadData();
+      const infoDiv = document.createElement('div');
+      infoDiv.className = 'item-info';
+
+      const nameSpan = document.createElement('span');
+      nameSpan.className = 'item-name';
+      nameSpan.textContent = item.name;
+
+      const servingsSpan = document.createElement('span');
+      servingsSpan.textContent = `${item.servings} serving${item.servings > 1 ? 's' : ''}`;
+
+      const caloriesSpan = document.createElement('span');
+      caloriesSpan.textContent = `${item.calories} cal/serving`;
+
+      infoDiv.append(nameSpan, servingsSpan, caloriesSpan);
+
+      const totalDiv = document.createElement('div');
+      totalDiv.textContent = `${item.servings * item.calories} cal`;
+
+      const removeBtn = document.createElement('button');
+      removeBtn.className = 'remove-btn';
+      removeBtn.textContent = 'Remove';
+      removeBtn.addEventListener('click', () => removeItem(item.id));
+
+      li.append(infoDiv, totalDiv, removeBtn);
+      ul.appendChild(li);
+    });
+    itemsListEl.innerHTML = '';
+    itemsListEl.appendChild(ul);
+  }
+
+  function removeItem(id) {
+    items = items.filter(item => item.id !== id);
+    saveItems();
+    updateUI();
+  }
+
+  function saveItems() {
+    localStorage.setItem('calorieItems', JSON.stringify(items));
+  }
+
+  function loadItems() {
+    const stored = localStorage.getItem('calorieItems');
+    if (stored) {
+      try {
+        items = JSON.parse(stored);
+      } catch {
+        items = [];
+      }
+    }
+    updateUI();
+  }
+
+  function displayError(msg) {
+    errorMessageEl.textContent = msg;
+  }
+
+  function clearError() {
+    errorMessageEl.textContent = '';
+  }
+});
