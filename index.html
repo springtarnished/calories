@@ -3,42 +3,568 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Calorie Tracker</title>
-  <link href="https://fonts.googleapis.com/css?family=Roboto:400,500&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="style.css" />
+  <title>NutriTrack | Daily Calorie Tracker</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+    
+    body, html {
+      height: 100%;
+      font-family: 'Inter', sans-serif;
+      background: #f0f4f8;
+      color: #334155;
+    }
+    
+    .app {
+      max-width: 100%;
+      height: 100vh;
+      margin: 0 auto;
+      display: grid;
+      grid-template-rows: auto auto 1fr auto;
+      overflow: hidden;
+    }
+    
+    header {
+      background: #3b82f6;
+      color: white;
+      padding: 15px 20px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    
+    .logo {
+      font-size: 1.5rem;
+      font-weight: 600;
+    }
+    
+    .dashboard {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 10px;
+      padding: 10px;
+      background: #fff;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+    }
+    
+    .metric {
+      background: #f8fafc;
+      border-radius: 10px;
+      padding: 10px;
+      text-align: center;
+    }
+    
+    .metric-label {
+      font-size: 0.8rem;
+      color: #64748b;
+      margin-bottom: 4px;
+    }
+    
+    .metric-value {
+      font-size: 1.1rem;
+      font-weight: 600;
+    }
+    
+    .remaining-positive {
+      color: #16a34a;
+    }
+    
+    .remaining-negative {
+      color: #dc2626;
+    }
+    
+    .progress-container {
+      grid-column: span 3;
+      margin-top: 5px;
+    }
+    
+    .progress-bar {
+      height: 8px;
+      background: #e2e8f0;
+      border-radius: 4px;
+      overflow: hidden;
+    }
+    
+    .progress {
+      height: 100%;
+      background: linear-gradient(90deg, #3b82f6, #60a5fa);
+      transition: width 0.3s ease;
+    }
+    
+    .progress-overbudget {
+      background: linear-gradient(90deg, #ef4444, #f87171);
+    }
+    
+    .main-content {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      padding: 10px;
+      overflow: hidden;
+    }
+    
+    .form-section, .list-section {
+      background: white;
+      border-radius: 10px;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+      padding: 15px;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+    }
+    
+    .form-section {
+      height: calc(100vh - 165px);
+    }
+    
+    .list-section {
+      height: calc(100vh - 165px);
+      overflow-y: auto;
+    }
+    
+    .section-title {
+      font-size: 1rem;
+      font-weight: 500;
+      margin-bottom: 15px;
+      color: #334155;
+      display: flex;
+      align-items: center;
+    }
+    
+    .section-title::before {
+      content: "";
+      display: inline-block;
+      width: 3px;
+      height: 16px;
+      background: #3b82f6;
+      margin-right: 8px;
+      border-radius: 3px;
+    }
+    
+    .calorie-form {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+    
+    .form-row {
+      display: flex;
+      gap: 10px;
+    }
+    
+    .form-control {
+      flex: 1;
+      position: relative;
+    }
+    
+    .calorie-form input {
+      width: 100%;
+      padding: 12px;
+      border: 1px solid #e2e8f0;
+      border-radius: 8px;
+      font-family: 'Inter', sans-serif;
+      font-size: 0.9rem;
+      transition: all 0.2s ease;
+    }
+    
+    .calorie-form input:focus {
+      outline: none;
+      border-color: #3b82f6;
+      box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+    }
+    
+    .calorie-form input::placeholder {
+      color: #cbd5e1;
+    }
+    
+    .button-group {
+      display: flex;
+      gap: 10px;
+      margin-top: 5px;
+    }
+    
+    .button {
+      padding: 12px;
+      border: none;
+      border-radius: 8px;
+      font-family: 'Inter', sans-serif;
+      font-size: 0.9rem;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      flex: 1;
+    }
+    
+    .button-primary {
+      background: #3b82f6;
+      color: white;
+    }
+    
+    .button-primary:hover {
+      background: #2563eb;
+    }
+    
+    .button-secondary {
+      background: #f1f5f9;
+      color: #64748b;
+    }
+    
+    .button-secondary:hover {
+      background: #e2e8f0;
+    }
+    
+    .error-message {
+      color: #dc2626;
+      font-size: 0.8rem;
+      margin: 5px 0;
+      text-align: center;
+    }
+    
+    .items-list {
+      flex: 1;
+      overflow-y: auto;
+    }
+    
+    .items-list ul {
+      list-style: none;
+    }
+    
+    .items-list li {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 12px;
+      background: #f8fafc;
+      margin-bottom: 8px;
+      border-radius: 8px;
+      transition: all 0.2s ease;
+    }
+    
+    .items-list li:hover {
+      background: #f1f5f9;
+    }
+    
+    .item-info {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+      flex: 1;
+      min-width: 0;
+    }
+    
+    .item-name {
+      font-weight: 500;
+      font-size: 0.95rem;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    
+    .item-details {
+      color: #64748b;
+      font-size: 0.75rem;
+    }
+    
+    .item-total {
+      font-weight: 600;
+      font-size: 0.95rem;
+      padding: 0 8px;
+      min-width: 70px;
+      text-align: right;
+    }
+    
+    .remove-btn {
+      width: 28px;
+      height: 28px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: #f1f5f9;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 1rem;
+      transition: all 0.2s ease;
+      color: #64748b;
+    }
+    
+    .remove-btn:hover {
+      background: #fee2e2;
+      color: #dc2626;
+    }
+    
+    .totals-bar {
+      background: #f8fafc;
+      padding: 15px;
+      text-align: center;
+      box-shadow: 0 -2px 10px rgba(0,0,0,0.05);
+    }
+    
+    .total-calories {
+      font-size: 1rem;
+      font-weight: 600;
+      color: #334155;
+    }
+    
+    .empty-message {
+      text-align: center;
+      color: #94a3b8;
+      padding: 20px 0;
+      font-size: 0.9rem;
+    }
+    
+    @media (max-width: 768px) {
+      .main-content {
+        grid-template-columns: 1fr;
+      }
+      
+      .form-section, .list-section {
+        height: auto;
+        max-height: 300px;
+      }
+      
+      .form-row {
+        flex-direction: column;
+      }
+    }
+    
+    /* For even smaller screens */
+    @media (max-width: 480px) {
+      .dashboard {
+        grid-template-columns: 1fr;
+        grid-template-rows: repeat(3, auto);
+      }
+      
+      .progress-container {
+        grid-column: 1;
+      }
+      
+      .metric {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        text-align: left;
+      }
+      
+      .metric-value {
+        font-size: 1rem;
+      }
+    }
+  </style>
 </head>
 <body>
   <div class="app">
     <header>
-      <h1>Calorie Tracker</h1>
+      <div class="logo">NutriTrack</div>
     </header>
-    <section class="goal-tracker">
-      <div class="goal-info">
-        <span id="daily-goal">Daily Goal: 1800 cal</span>
-        <span id="total-calories">Total: 0 cal</span>
-        <span id="remaining-calories">1800 cal remaining</span>
+    
+    <div class="dashboard">
+      <div class="metric">
+        <div class="metric-label">Daily Goal</div>
+        <div class="metric-value" id="daily-goal">1800 cal</div>
       </div>
-      <div class="progress-bar">
-        <div id="progress" class="progress" style="width: 0%;"></div>
+      <div class="metric">
+        <div class="metric-label">Consumed</div>
+        <div class="metric-value" id="total-calories">0 cal</div>
       </div>
-    </section>
-    <main>
-      <form id="calorie-form" class="calorie-form">
-        <input type="text" id="food-name" placeholder="Food Item" required />
-        <input type="number" id="servings" placeholder="Servings" required />
-        <input type="number" id="calories-per-serving" placeholder="Calories per Serving" required />
-        <button type="submit">Add</button>
-        <button type="button" id="clear-all" class="clear-all">Clear All</button>
-      </form>
-      <div id="error-message" class="error-message"></div>
-      <section class="items-list" id="items-list">
-        <p class="empty-message">No items added yet.</p>
-      </section>
-    </main>
-    <footer>
-      <h2 id="footer-total">Total Calories: 0</h2>
-    </footer>
+      <div class="metric">
+        <div class="metric-label">Remaining</div>
+        <div class="metric-value remaining-positive" id="remaining-calories">1800 cal</div>
+      </div>
+      <div class="progress-container">
+        <div class="progress-bar">
+          <div id="progress" class="progress" style="width: 0%;"></div>
+        </div>
+      </div>
+    </div>
+    
+    <div class="main-content">
+      <div class="form-section">
+        <h2 class="section-title">Add Food Item</h2>
+        <form id="calorie-form" class="calorie-form">
+          <input type="text" id="food-name" placeholder="Food name" required />
+          <div class="form-row">
+            <div class="form-control">
+              <input type="number" id="servings" placeholder="Servings" step="0.1" min="0.1" required />
+            </div>
+            <div class="form-control">
+              <input type="number" id="calories-per-serving" placeholder="Calories/serving" min="1" required />
+            </div>
+          </div>
+          <div id="error-message" class="error-message"></div>
+          <div class="button-group">
+            <button type="submit" class="button button-primary">Add</button>
+            <button type="button" id="clear-all" class="button button-secondary">Clear All</button>
+          </div>
+        </form>
+      </div>
+      
+      <div class="list-section">
+        <h2 class="section-title">Today's Food</h2>
+        <div class="items-list" id="items-list">
+          <p class="empty-message">Add your first food item</p>
+        </div>
+      </div>
+    </div>
+    
+    <div class="totals-bar">
+      <div class="total-calories" id="footer-total">Total Calories: 0</div>
+    </div>
   </div>
-  <script src="script.js"></script>
+  
+  <script>
+  document.addEventListener('DOMContentLoaded', () => {
+    const DAILY_GOAL = 1800;
+    let items = [];
+
+    const form = document.getElementById('calorie-form');
+    const foodNameInput = document.getElementById('food-name');
+    const servingsInput = document.getElementById('servings');
+    const caloriesInput = document.getElementById('calories-per-serving');
+    const totalCaloriesEl = document.getElementById('total-calories');
+    const progressEl = document.getElementById('progress');
+    const remainingCaloriesEl = document.getElementById('remaining-calories');
+    const footerTotalEl = document.getElementById('footer-total');
+    const itemsListEl = document.getElementById('items-list');
+    const errorMessageEl = document.getElementById('error-message');
+    const clearAllBtn = document.getElementById('clear-all');
+
+    loadItems();
+
+    form.addEventListener('submit', (e) => {
+      e.preventDefault();
+      clearError();
+
+      const name = foodNameInput.value.trim();
+      const servings = parseFloat(servingsInput.value);
+      const calories = parseFloat(caloriesInput.value);
+
+      if (!name || isNaN(servings) || isNaN(calories) || servings <= 0 || calories <= 0) {
+        displayError("Please enter valid values");
+        return;
+      }
+
+      const newItem = { id: Date.now(), name, servings, calories };
+      items.push(newItem);
+      saveItems();
+      updateUI();
+      form.reset();
+      foodNameInput.focus();
+    });
+
+    clearAllBtn.addEventListener('click', () => {
+      if (items.length === 0 || confirm("Clear all items?")) {
+        items = [];
+        saveItems();
+        updateUI();
+      }
+    });
+
+    function updateUI() {
+      const totalCalories = items.reduce((sum, item) => sum + item.servings * item.calories, 0);
+      totalCaloriesEl.textContent = `${totalCalories} cal`;
+      footerTotalEl.textContent = `Total Calories: ${totalCalories}`;
+
+      const remaining = DAILY_GOAL - totalCalories;
+      
+      if (remaining >= 0) {
+        remainingCaloriesEl.textContent = `${remaining} cal`;
+        remainingCaloriesEl.className = 'metric-value remaining-positive';
+      } else {
+        remainingCaloriesEl.textContent = `${Math.abs(remaining)} cal over`;
+        remainingCaloriesEl.className = 'metric-value remaining-negative';
+      }
+
+      const progressPercent = Math.min((totalCalories / DAILY_GOAL) * 100, 100);
+      progressEl.style.width = progressPercent + '%';
+      
+      if (totalCalories > DAILY_GOAL) {
+        progressEl.classList.add('progress-overbudget');
+      } else {
+        progressEl.classList.remove('progress-overbudget');
+      }
+
+      renderItems();
+    }
+
+    function renderItems() {
+      if (!items.length) {
+        itemsListEl.innerHTML = '<p class="empty-message">Add your first food item</p>';
+        return;
+      }
+      
+      const ul = document.createElement('ul');
+      
+      // Sort items by most recently added
+      const sortedItems = [...items].reverse();
+      
+      sortedItems.forEach(item => {
+        const li = document.createElement('li');
+
+        const infoDiv = document.createElement('div');
+        infoDiv.className = 'item-info';
+
+        const nameSpan = document.createElement('span');
+        nameSpan.className = 'item-name';
+        nameSpan.textContent = item.name;
+
+        const detailsSpan = document.createElement('span');
+        detailsSpan.className = 'item-details';
+        detailsSpan.textContent = `${item.servings} × ${item.calories} cal`;
+
+        infoDiv.append(nameSpan, detailsSpan);
+
+        const totalDiv = document.createElement('div');
+        totalDiv.className = 'item-total';
+        totalDiv.textContent = `${Math.round(item.servings * item.calories)} cal`;
+
+        const removeBtn = document.createElement('button');
+        removeBtn.className = 'remove-btn';
+        removeBtn.textContent = '×';
+        removeBtn.setAttribute('aria-label', 'Remove item');
+        removeBtn.addEventListener('click', (e) => {
+          e.stopPropagation();
+          removeItem(item.id);
+        });
+
+        li.append(infoDiv, totalDiv, removeBtn);
+        ul.appendChild(li);
+      });
+      
+      itemsListEl.innerHTML = '';
+      itemsListEl.appendChild(ul);
+    }
+
+    function removeItem(id) {
+      items = items.filter(item => item.id !== id);
+      saveItems();
+      updateUI();
+    }
+
+    function saveItems() {
+      // In-memory storage only (no localStorage in sandboxed environment)
+      // This is a placeholder - data will be lost on page refresh
+      console.log('Items saved in memory:', items);
+    }
+
+    function loadItems() {
+      // Initialize with empty array since we can't use localStorage in this environment
+      items = [];
+      updateUI();
+    }
+
+    function displayError(msg) {
+      errorMessageEl.textContent = msg;
+    }
+
+    function clearError() {
+      errorMessageEl.textContent = '';
+    }
+  });
+  </script>
 </body>
 </html>
